@@ -1,4 +1,5 @@
-﻿using GradeBook.GradeBooks;
+﻿using GradeBook.Enums;
+using GradeBook.GradeBooks;
 using System;
 
 namespace GradeBook.UserInterfaces
@@ -34,29 +35,42 @@ namespace GradeBook.UserInterfaces
         public static void CreateCommand(string command)
         {
             var parts = command.Split(' ');
-            if (parts.Length != 3)
+            if (parts.Length != 4)
             {
-                Console.WriteLine("Command not valid, Create requires a name and type of gradebook.");
-                return;
-            }
-            var name = parts[1];
-            BaseGradeBook gradeBook;
-            if (parts[2] == "standard")
-            {
-                gradeBook = new StandardGradeBook(name);
-            }
-            else if (parts[2] == "ranked")
-            {
-                gradeBook = new RankedGradeBook(name);
-            }
-            else
-            {
-                Console.WriteLine(parts[2] + " is not a supported type of gradebook, please try again");
+                Console.WriteLine("Command not valid, Create requires a name, type of gradebook, if it's weighted (true / false).");
                 return;
             }
 
-            Console.WriteLine("Created gradebook {0}.", name);
-            GradeBookUserInterface.CommandLoop(gradeBook);          
+            var name = parts[1];
+            if (!Enum.TryParse<GradeBookType>(parts[2], out var gradeBookType))
+            {
+                Console.WriteLine($"{parts[2]} is not a supported type of gradebook, please try again");
+                return;
+            }
+
+            if (!bool.TryParse(parts[3], out var isWeighted))
+            {
+                Console.WriteLine($"{parts[3]} is not a valid value for isWeighted, please try again");
+                return;
+            }
+
+            BaseGradeBook gradeBook;
+            if (gradeBookType == GradeBookType.Standard)
+            {
+                gradeBook = new StandardGradeBook(name, isWeighted);
+            }
+            else if (gradeBookType == GradeBookType.Ranked)
+            {
+                gradeBook = new RankedGradeBook(name, isWeighted);
+            }
+            else
+            {
+                Console.WriteLine($"{gradeBookType} is not a supported type of gradebook, please try again");
+                return;
+            }
+
+            Console.WriteLine($"Created {gradeBookType} gradebook {name} {(isWeighted ? "weighted" : "unweighted")}.");
+            GradeBookUserInterface.CommandLoop(gradeBook);
         }
 
         public static void LoadCommand(string command)
